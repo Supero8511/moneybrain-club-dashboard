@@ -99,6 +99,7 @@ button{font-family:inherit;}
 .book-cover span{text-shadow:0 1px 4px rgba(0,0,0,.25);}
 .book-body{padding:11px 12px 13px;display:flex;flex-direction:column;gap:7px;flex:1;}
 .book-title{font-size:.86rem;font-weight:700;line-height:1.35;min-height:2.6em;}
+.book-month{font-size:.74rem;color:var(--ink-soft);font-weight:700;}
 .badge-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:auto;}
 .badge{
   font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:999px;

@@ -44,6 +44,14 @@
       return PALETTES[h % PALETTES.length];
     }
 
+    function formatMonth(m) {
+      if (!m) return "";
+      const parts = String(m).split(/[.\-/]/).filter(Boolean);
+      if (parts.length < 2) return m;
+      const [y, mo] = parts;
+      return `${y}년 ${Number(mo)}월`;
+    }
+
     let allBooks = [];
     let currentUser = null, currentProfile = null;
 
@@ -73,6 +81,7 @@
     function cardHtml(b) {
       const [c1, c2] = paletteFor(b.title || b.id);
       const locked = currentUser && !isStaff(currentProfile) && b._locked;
+      const monthLabel = formatMonth(b.month);
       return `
         <div class="book-card ${locked ? "locked" : ""}" data-id="${b.id}">
           <div class="book-cover" style="--c1:${c1};--c2:${c2};">
@@ -80,6 +89,7 @@
           </div>
           <div class="book-body">
             <div class="book-title">${escapeHtml(b.title || "제목없음")}</div>
+            ${monthLabel ? `<div class="book-month">${escapeHtml(monthLabel)}</div>` : ""}
             <div class="badge-row">
               ${b.status === "finished" ? `<span class="badge finished">● Finished</span>` : `<span class="badge ongoing">● 진행중</span>`}
               ${b.challenge ? `<span class="badge challenge">2026 challenge</span>` : ""}
