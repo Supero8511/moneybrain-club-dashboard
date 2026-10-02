@@ -171,10 +171,12 @@ async function initRelay() {
     // 잠시 후 원래 값으로 되돌아가 "입력한 내용이 사라지는" 것처럼 보이는 문제가
     // 있었습니다. 운영진이 이 탭을 열 때 닉네임으로 UID를 매칭해 한 번만 채워줍니다.
     if (staff && memberOptions.length) {
-      const nicknameToUid = Object.fromEntries(memberOptions.map(m => [m.nickname, m.uid]));
+      // 한글 닉네임은 기기/키보드에 따라 유니코드 내부 표현(결합형/분리형)이 달라
+      // 화면엔 똑같이 보여도 문자열이 다르게 취급될 수 있어, normalize("NFC")로 맞춰 비교합니다.
+      const nicknameToUid = Object.fromEntries(memberOptions.map(m => [normalizeName(m.nickname), m.uid]));
       rows.forEach(r => {
         if ((!Array.isArray(r.assigneeUids) || !r.assigneeUids.length) && r.assignee) {
-          const names = r.assignee.split(/[,、·]/).map(s => s.trim()).filter(Boolean);
+          const names = r.assignee.split(/[,、·]/).map(normalizeName).filter(Boolean);
           const uids = [...new Set(names.map(n => nicknameToUid[n]).filter(Boolean))];
           if (uids.length) {
             updateRelayRow(bookId, r.id, { assigneeUids: uids }).catch(() => {});
@@ -319,6 +321,12 @@ async function initRelay() {
   }
 }
 
+function normalizeName(s) {
+  // 한글은 기기/키보드에 따라 유니코드 내부 표현(결합형 NFC/분리형 NFD)이 달라질 수 있어,
+  // 화면엔 똑같이 보여도 문자열 비교가 틀어지는 걸 막기 위해 NFC로 통일합니다.
+  return String(s || "").normalize("NFC").trim();
+}
+
 function isMyRelayRow(r) {
   if (!currentUser) return false;
   if (Array.isArray(r.assigneeUids) && r.assigneeUids.length) {
@@ -327,7 +335,7 @@ function isMyRelayRow(r) {
   // 담당자 UID가 없는 예전 데이터(닉네임 텍스트만 저장된 경우) 대비
   const nickname = currentProfile?.nickname;
   if (!nickname || !r.assignee) return false;
-  return r.assignee.split(/[,、·]/).map(s => s.trim()).includes(nickname);
+  return r.assignee.split(/[,、·]/).map(normalizeName).includes(normalizeName(nickname));
 }
 
 function weekdayKo(dateStr) {
