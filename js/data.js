@@ -122,6 +122,28 @@ export async function deleteStaffArchiveEntry(bookId, entryId, photoPath) {
   await deleteDoc(doc(db, "books", bookId, "staffArchive", entryId));
 }
 
+/* ---------- 책별 자료 게시판 ---------- */
+export function watchBookMaterials(bookId, cb) {
+  return onSnapshot(query(collection(db, "books", bookId, "materials"), orderBy("createdAt", "desc")),
+    snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+}
+export async function addBookMaterial(bookId, { file, title, note, uploadedBy }) {
+  const filePath = `materials/${bookId}/${Date.now()}_${file.name}`;
+  const sref = ref(storage, filePath);
+  await uploadBytes(sref, file);
+  const fileUrl = await getDownloadURL(sref);
+  await addDoc(collection(db, "books", bookId, "materials"), {
+    title, note: note || "", fileUrl, filePath, fileName: file.name, fileSize: file.size,
+    uploadedBy, createdAt: Date.now()
+  });
+}
+export async function deleteBookMaterial(bookId, entryId, filePath) {
+  if (filePath) {
+    try { await deleteObject(ref(storage, filePath)); } catch (e) { /* 이미 없을 수 있음 */ }
+  }
+  await deleteDoc(doc(db, "books", bookId, "materials", entryId));
+}
+
 /* ---------- 책 표지 업로드 ---------- */
 export async function uploadBookCover(bookId, file) {
   const path = `covers/${bookId}_${Date.now()}_${file.name}`;
