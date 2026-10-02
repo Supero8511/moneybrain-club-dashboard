@@ -47,9 +47,9 @@ async function evaluateAccess() {
     allowed = false;
     gate.innerHTML = `
       <div class="lock-screen">
-        <h2>🔒 로기인이 필요합니다</h2>
-        <p>"${escapeHtml(book.title)}" 페이지를 보린린 로기인하거나 회원가입해주세요.</p>
-        <button class="btn primary" id="gate-login-btn" style="margin-top:10px;">로기인 / 가입</button>
+        <h2>🔒 로그인이 필요합니다</h2>
+        <p>"${escapeHtml(book.title)}" 페이지를 보려면 로그인하거나 회원가입해주세요.</p>
+        <button class="btn primary" id="gate-login-btn" style="margin-top:10px;">로그인 / 가입</button>
       </div>
     `;
     document.getElementById("gate-login-btn").onclick = () => openAuthModal();
@@ -58,7 +58,7 @@ async function evaluateAccess() {
   }
   allowed = isStaff(currentProfile) || await hasBookAccess(bookId, currentUser.uid);
   if (!allowed) {
-    gate.innerHTML = `<div class="lock-screen"><h2>🔒 접근 권한이 없습니다</h2><p>이 책의 열람 권한이 없습니다. 어뛈맘에게 문의해주세요.</p></div>`;
+    gate.innerHTML = `<div class="lock-screen"><h2>🔒 접근 권한이 없습니다</h2><p>이 책의 열람 권한이 없습니다. 어드민에게 문의해주세요.</p></div>`;
     content.style.display = "none";
     return;
   }
@@ -163,7 +163,7 @@ async function initReview() {
     const reviewsByUid = Object.fromEntries(reviewDocs.map(r => [r.id, r]));
     const tbody = document.getElementById("review-rows");
     if (!members.length) {
-      tbody.innerHTML = `<tr><td colspan="3" class="mini-tag">이 책에 열람 권한이 벀처진 멤버가 없습니다.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3" class="mini-tag">이 책에 열람 권한이 부여된 멤버가 없습니다.</td></tr>`;
       return;
     }
     tbody.innerHTML = members.map(uid => {
@@ -283,7 +283,7 @@ function initStaffArchive() {
   };
 }
 
-/* ---------------- 어뛈맘용 유피티 ---------------- */
+/* ---------------- 공통 편집 유틸 ---------------- */
 function editableCell(editable, value, field) {
   if (!editable) return escapeHtml(value || "");
   return `<input type="text" data-field="${field}" value="${escapeHtml(value || "")}" />`;

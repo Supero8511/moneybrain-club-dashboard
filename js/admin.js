@@ -19,12 +19,12 @@ onReady(async (user, profile) => {
   const gate = document.getElementById("access-gate");
   const content = document.getElementById("admin-content");
   if (!user) {
-    gate.innerHTML = `<div class="lock-screen"><h2>🔒 로기인이 필요합니다</h2></div>`;
+    gate.innerHTML = `<div class="lock-screen"><h2>🔒 로그인이 필요합니다</h2></div>`;
     content.style.display = "none";
     return;
   }
   if (!isStaff(profile)) {
-    gate.innerHTML = `<div class="lock-screen"><h2>🔒 운영진/어뛈맘뛌 접긼할 수 있습니다</h2></div>`;
+    gate.innerHTML = `<div class="lock-screen"><h2>🔒 운영진/어드민만 접근할 수 있습니다</h2></div>`;
     content.style.display = "none";
     return;
   }
@@ -99,7 +99,7 @@ function renderBookList() {
           <option value="finished" ${b.status === "finished" ? "selected" : ""}>Finished</option>
         </select>
         <label class="btn ghost small" style="cursor:pointer;">
-          <span>표지 변가으</span>
+          <span>표지 변경</span>
           <input type="file" accept="image/*" data-cover="${b.id}" style="display:none;" />
         </label>
         <a class="btn ghost small" href="./book.html?id=${b.id}">열기</a>
@@ -111,7 +111,7 @@ function renderBookList() {
     sel.onchange = () => updateBook(sel.dataset.status, { status: sel.value });
   });
   [...host.querySelectorAll("[data-del]")].forEach(btn => {
-    btn.onclick = () => { if (confirm("이 책과 모든 데이타 열람 설정을 삭제하시겠습니까?")) deleteBook(btn.dataset.del); };
+    btn.onclick = () => { if (confirm("이 책과 모든 데이터 열람 설정을 삭제하시겠습니까?")) deleteBook(btn.dataset.del); };
   });
   [...host.querySelectorAll("[data-cover]")].forEach(input => {
     input.onchange = async () => {
@@ -147,7 +147,7 @@ function renderAccessBookSelect() {
     sel.value = selectedBookId;
     renderAccessGrid();
   } else {
-    document.getElementById("access-grid").innerHTML = `<p class="hint">어뛈맘을 추가해주세요.</p>`;
+    document.getElementById("access-grid").innerHTML = `<p class="hint">먼저 책을 추가해주세요.</p>`;
   }
 }
 

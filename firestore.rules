@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ⚠️ js/firebase-config.js 의 SUPER_ADMIN_EMAIL 와 반드시 동일하게 유지하세요.
+    // ⚠️ js/firebase-config.js 의 SUPER_ADMIN_EMAIL 과 반드시 동일하게 유지하세요.
     function SUPER_ADMIN_EMAIL() { return 'idcrazyzz@gmail.com'; }
 
     function signedIn() { return request.auth != null; }
@@ -18,7 +18,7 @@ service cloud.firestore {
       return staff() || exists(/databases/$(database)/documents/books/$(bookId)/members/$(request.auth.uid));
     }
 
-    // 사용자 피릌(닉늤임 / 역할)
+    // 사용자 프로필 (닉네임 / 역할)
     match /users/{uid} {
       allow read: if signedIn();
       allow create: if signedIn() && request.auth.uid == uid &&
@@ -31,12 +31,12 @@ service cloud.firestore {
       allow delete: if admin();
     }
 
-    // 책 맀타데이타 (제목/저자/상태/챗리맄지 태글) - 리스트는 로기인한 모두에게 보임
+    // 책 메타데이터 (제목/저자/상태/챌린지 태그) - 목록은 로그인한 모두에게 보임
     match /books/{bookId} {
       allow read: if signedIn();
       allow write: if admin();
 
-      // 책별 열람 권한 (문서가 존재 = 권한 부여됨). 어뛈맘뛌 부여/회수.
+      // 책별 열람 권한 (문서가 존재 = 권한 부여됨). 어드민만 부여/회수.
       match /members/{uid} {
         allow read: if signedIn() && (request.auth.uid == uid || staff());
         allow write: if admin();
@@ -48,7 +48,7 @@ service cloud.firestore {
         allow write: if staff();
       }
 
-      // 릴리이 인증 - 열람 권한자는 글구/능껹점/완리숴가
+      // 릴레이 인증 - 열람 권한자는 글귀/느낀점/완료체크 수정 가능, 행 추가/삭제는 운영진만
       match /relay/{rowId} {
         allow read: if bookAccess(bookId);
         allow create, delete: if staff();
