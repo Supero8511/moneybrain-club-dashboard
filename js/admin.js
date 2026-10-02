@@ -2,7 +2,7 @@ import { mountHeader, onReady, isAdmin, isStaff, escapeHtml, getCurrentUser } fr
 import {
   listBooks, watchBooks, createBook, updateBook, deleteBook,
   listBookMembers, grantBookAccess, revokeBookAccess,
-  listUsers, setUserRole
+  listUsers, setUserRole, uploadBookCover
 } from "./data.js";
 
 mountHeader("admin");
@@ -48,10 +48,25 @@ async function init() {
     const month = document.getElementById("bf-month").value.trim();
     const status = document.getElementById("bf-status").value;
     const challenge = document.getElementById("bf-challenge").checked;
+    const coverFile = document.getElementById("bf-cover").files[0];
     if (!title) return;
-    await createBook({ title, author, month, status, challenge });
-    e.target.reset();
-    document.getElementById("bf-challenge").checked = true;
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+    submitBtn.textContent = coverFile ? "표지 업로드 중…" : "추가 중…";
+    try {
+      const bookId = await createBook({ title, author, month, status, challenge });
+      if (coverFile) {
+        const coverUrl = await uploadBookCover(bookId, coverFile);
+        await updateBook(bookId, { coverUrl });
+      }
+      e.target.reset();
+      document.getElementById("bf-challenge").checked = true;
+    } catch (err) {
+      alert("책 추가 중 오류가 발생했습니다: " + (err.message || err));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "책 추가";
+    }
   };
 
   document.getElementById("access-book-select").onchange = (e) => {
@@ -65,15 +80,22 @@ function renderBookList() {
   if (!books.length) { host.innerHTML = `<p class="hint">등록된 책이 없습니다.</p>`; return; }
   host.innerHTML = books.map(b => `
     <div class="list-row" data-id="${b.id}">
-      <div>
-        <div class="name">${escapeHtml(b.title)}</div>
-        <div class="sub">${[b.author, b.month].filter(Boolean).map(escapeHtml).join(" · ")}</div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div class="cover-thumb" style="background-image:url('${b.coverUrl || ""}');">${b.coverUrl ? "" : escapeHtml((b.title || "?")[0])}</div>
+        <div>
+          <div class="name">${escapeHtml(b.title)}</div>
+          <div class="sub">${[b.author, b.month].filter(Boolean).map(escapeHtml).join(" · ")}</div>
+        </div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
         <select class="role-select" data-status="${b.id}">
           <option value="ongoing" ${b.status !== "finished" ? "selected" : ""}>진행중</option>
           <option value="finished" ${b.status === "finished" ? "selected" : ""}>Finished</option>
         </select>
+        <label class="btn ghost small" style="cursor:pointer;">
+          <span>표지 변경</span>
+          <input type="file" accept="image/*" data-cover="${b.id}" style="display:none;" />
+        </label>
         <a class="btn ghost small" href="./book.html?id=${b.id}">열기</a>
         <button class="btn danger small" data-del="${b.id}">삭제</button>
       </div>
@@ -84,6 +106,24 @@ function renderBookList() {
   });
   [...host.querySelectorAll("[data-del]")].forEach(btn => {
     btn.onclick = () => { if (confirm("이 책과 모든 데이터 열람 설정을 삭제하시겠습니까?")) deleteBook(btn.dataset.del); };
+  });
+  [...host.querySelectorAll("[data-cover]")].forEach(input => {
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      const bookId = input.dataset.cover;
+      const span = input.closest("label").querySelector("span");
+      const originalText = span.textContent;
+      span.textContent = "업로드 중…";
+      try {
+        const coverUrl = await uploadBookCover(bookId, file);
+        await updateBook(bookId, { coverUrl });
+      } catch (err) {
+        alert("표지 업로드 중 오류가 발생했습니다: " + (err.message || err));
+      } finally {
+        span.textContent = originalText;
+      }
+    };
   });
 }
 

@@ -180,6 +180,11 @@ td textarea{resize:vertical;min-height:40px;}
   flex-wrap:wrap;
 }
 .list-row:last-child{border-bottom:none;}
+.cover-thumb{
+  width:40px;height:52px;border-radius:6px;flex-shrink:0;background-size:cover;background-position:center;
+  background-color:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.9rem;
+}
 .list-row .name{font-weight:700;font-size:.88rem;}
 .list-row .sub{font-size:.76rem;color:var(--ink-soft);}
 .role-select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:.8rem;font-family:inherit;}

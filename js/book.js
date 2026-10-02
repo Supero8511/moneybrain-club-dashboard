@@ -1,4 +1,4 @@
-import { mountHeader, onReady, isStaff, escapeHtml } from "./common.js";
+import { mountHeader, onReady, isStaff, escapeHtml, openAuthModal } from "./common.js";
 import {
   getBook, hasBookAccess, listBookMembers, listUsers,
   watchProgress, addProgressRow, updateProgressRow, deleteProgressRow,
@@ -42,7 +42,14 @@ async function evaluateAccess() {
   const content = document.getElementById("book-content");
   if (!currentUser) {
     allowed = false;
-    gate.innerHTML = `<div class="lock-screen"><h2>🔒 로그인이 필요합니다</h2><p>우측 상단에서 로그인 후 다시 시도해주세요.</p></div>`;
+    gate.innerHTML = `
+      <div class="lock-screen">
+        <h2>🔒 로그인이 필요합니다</h2>
+        <p>"${escapeHtml(book.title)}" 페이지를 보려면 로그인하거나 회원가입해주세요.</p>
+        <button class="btn primary" id="gate-login-btn" style="margin-top:10px;">로그인 / 가입</button>
+      </div>
+    `;
+    document.getElementById("gate-login-btn").onclick = () => openAuthModal();
     content.style.display = "none";
     return;
   }
