@@ -137,7 +137,7 @@ td input[type=text], td textarea, td input[type=url]{
   width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:.84rem;font-family:inherit;
   background:#fffefb;
 }
-td textarea{resize:vertical;min-height:40px;}
+td textarea{resize:vertical;min-height:40px;max-height:140px;overflow-y:auto;}
 .mini-tag{font-size:.7rem;color:var(--ink-soft);}
 .check-pill{
   display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;cursor:pointer;user-select:none;
@@ -150,6 +150,7 @@ td textarea{resize:vertical;min-height:40px;}
 /* 릴레이인증 디자인 */
 .relay-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:-6px 0 12px;}
 .relay-toolbar .mini-tag{margin:0;}
+.relay-table{table-layout:fixed;}
 .relay-table tbody tr:nth-child(odd){background:#fbf9f4;}
 .relay-table tbody tr:nth-child(even){background:#ffffff;}
 .relay-table tbody tr:hover{background:#f3eedd;}
@@ -157,7 +158,10 @@ td textarea{resize:vertical;min-height:40px;}
 .relay-table tbody tr.is-mine td:first-child{box-shadow:inset 3px 0 0 var(--gold);}
 .relay-table .weekday-sat{color:#2a6fb0;font-weight:800;}
 .relay-table .weekday-sun{color:var(--warn);font-weight:800;}
-.readonly-text{font-size:.84rem;color:var(--ink-soft);white-space:pre-wrap;word-break:break-word;line-height:1.5;}
+.readonly-text{
+  font-size:.84rem;color:var(--ink-soft);white-space:pre-wrap;word-break:break-word;line-height:1.5;
+  max-height:130px;overflow-y:auto;padding-right:4px;
+}
 .assignee-cell{display:flex;flex-direction:column;gap:5px;align-items:flex-start;}
 .assignee-cell span{white-space:nowrap;font-weight:800;}
 .row-actions{display:flex;gap:6px;flex-wrap:wrap;}
