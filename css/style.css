@@ -243,4 +243,6 @@ td textarea{resize:vertical;min-height:40px;max-height:140px;overflow-y:auto;}
 @media (max-width:600px){
   .hero h1{font-size:1.35rem;}
   table{min-width:480px;}
+  .relay-table{font-size:.76rem;min-width:420px;}
+  .relay-table th, .relay-table td{padding-left:5px;padding-right:5px;}
 }
