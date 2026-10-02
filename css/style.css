@@ -163,8 +163,8 @@ td textarea{resize:vertical;min-height:40px;max-height:140px;overflow-y:auto;}
   font-size:.84rem;color:var(--ink-soft);white-space:pre-wrap;word-break:break-word;line-height:1.5;
   max-height:130px;overflow-y:auto;padding-right:4px;
 }
-.assignee-cell{display:flex;flex-direction:column;gap:5px;align-items:flex-start;}
-.assignee-cell span{white-space:nowrap;font-weight:800;}
+.assignee-cell{display:flex;flex-direction:column;gap:5px;align-items:flex-start;width:100%;}
+.assignee-cell span{white-space:normal;word-break:break-word;font-weight:800;}
 .row-actions{display:flex;gap:6px;flex-wrap:wrap;}
 
 /* 자료 게시판 2단 레이아웃 */
