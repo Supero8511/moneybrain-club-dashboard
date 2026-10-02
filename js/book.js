@@ -116,7 +116,7 @@ async function initRelay() {
   const staff = isStaff(currentProfile);
   document.getElementById("relay-th-del").textContent = "";
 
-  // 담당 인증자 지정에 쓸 멤버 목록 (운영진 전용 폼에서만 필요)
+  // 인증자 지정에 쓸 멤버 목록 (운영진 전용 폼에서만 필요)
   let memberOptions = [];
   if (staff) {
     const memberUids = await listBookMembers(bookId);
@@ -140,12 +140,12 @@ async function initRelay() {
         const rowClass = [r.done ? "is-done" : "", mine ? "is-mine" : ""].filter(Boolean).join(" ");
         return `
         <tr data-id="${r.id}" class="${rowClass}">
-          <td>${escapeHtml(r.date || "")}</td>
+          <td>${escapeHtml(shortDate(r.date))}</td>
           <td class="${weekdayClass}">${escapeHtml(r.weekday || "")}</td>
           <td>
             <div class="assignee-cell">
               <span>${escapeHtml(r.assignee || "")}</span>
-              ${staff ? `<button class="btn ghost small" data-reassign="${r.id}">담당자 수정</button>` : ""}
+              ${staff ? `<button class="btn ghost small" data-reassign="${r.id}">수정</button>` : ""}
             </div>
           </td>
           <td>${canEdit
@@ -186,11 +186,11 @@ async function initRelay() {
   addWrap.innerHTML = `
     <div class="card" id="relay-add-card">
       <h3>릴레이 일정 추가</h3>
-      <p class="hint">날짜를 고르면 요일은 자동으로 계산됩니다. 담당 인증자를 선택해주세요(복수 선택 가능). 등록 후 날짜·요일·인증자는 "담당자 수정"으로만 바꿀 수 있습니다.</p>
+      <p class="hint">날짜를 고르면 요일은 자동으로 계산됩니다. 인증자를 선택해주세요(복수 선택 가능). 등록 후 날짜·요일·인증자는 "수정"으로만 바꿀 수 있습니다.</p>
       <form id="relay-add-form">
         <div class="field" style="max-width:220px;"><label>날짜</label><input type="date" id="relay-add-date" required /></div>
         <div class="field">
-          <label>담당 인증자</label>
+          <label>인증자</label>
           <div class="access-grid" id="relay-add-assignees">
             ${memberOptions.map(m => `
               <label class="access-chip"><input type="checkbox" value="${m.uid}" data-nickname="${escapeHtml(m.nickname)}" /> ${escapeHtml(m.nickname)}</label>
@@ -212,7 +212,7 @@ async function initRelay() {
       const dateVal = document.getElementById("relay-add-date").value;
       if (!dateVal) return;
       const checked = [...addWrap.querySelectorAll("#relay-add-assignees input:checked")];
-      if (!checked.length) { alert("담당 인증자를 한 명 이상 선택해주세요."); return; }
+      if (!checked.length) { alert("인증자를 한 명 이상 선택해주세요."); return; }
       const assigneeUids = checked.map(c => c.value);
       const assignee = checked.map(c => c.dataset.nickname).join(", ");
       const weekday = weekdayKo(dateVal);
@@ -248,6 +248,16 @@ function formatDateDot(dateStr) {
   return `${y}.${Number(m)}.${Number(d)}`;
 }
 
+// 화면 표시용 짧은 날짜 (연도 2자리). 저장된 값 형식(2026.10.1 / 2026-10-01 등)에 상관없이 표시만 줄여줍니다.
+function shortDate(dateStr) {
+  if (!dateStr) return "";
+  const parts = String(dateStr).split(/[.\-/]/).filter(Boolean);
+  if (parts.length < 3) return dateStr;
+  let [y, m, d] = parts;
+  if (y.length === 4) y = y.slice(-2);
+  return `${y}.${Number(m)}.${Number(d)}`;
+}
+
 function openReassignModal(row, memberOptions) {
   const currentUids = new Set(Array.isArray(row.assigneeUids) ? row.assigneeUids : []);
   const backdrop = document.createElement("div");
@@ -255,8 +265,8 @@ function openReassignModal(row, memberOptions) {
   backdrop.innerHTML = `
     <div class="modal">
       <button class="close-x" id="reassign-close">✕</button>
-      <h3>담당 인증자 수정</h3>
-      <p class="sub">${escapeHtml(row.date || "")}${row.weekday ? ` (${escapeHtml(row.weekday)})` : ""}</p>
+      <h3>인증자 수정</h3>
+      <p class="sub">${escapeHtml(shortDate(row.date))}${row.weekday ? ` (${escapeHtml(row.weekday)})` : ""}</p>
       <div class="access-grid">
         ${memberOptions.map(m => `
           <label class="access-chip ${currentUids.has(m.uid) ? "granted" : ""}">

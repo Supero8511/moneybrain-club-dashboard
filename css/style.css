@@ -60,6 +60,7 @@ button{font-family:inherit;}
   display:inline-flex;align-items:center;gap:6px;justify-content:center;
   border:1px solid var(--line);background:var(--surface);color:var(--ink);
   padding:9px 16px;border-radius:999px;font-size:.88rem;font-weight:700;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
   transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
 .btn:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
@@ -129,7 +130,7 @@ button{font-family:inherit;}
 .table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);}
 table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:560px;}
 th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;}
-th{background:#fbf9f4;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);}
+th{background:#fbf9f4;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);white-space:nowrap;}
 tr:last-child td{border-bottom:none;}
 td input[type=text], td textarea, td input[type=url]{
   width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:.84rem;font-family:inherit;
@@ -157,6 +158,7 @@ td textarea{resize:vertical;min-height:40px;}
 .relay-table .weekday-sun{color:var(--warn);font-weight:800;}
 .readonly-text{font-size:.84rem;color:var(--ink-soft);white-space:pre-wrap;word-break:break-word;line-height:1.5;}
 .assignee-cell{display:flex;flex-direction:column;gap:5px;align-items:flex-start;}
+.assignee-cell span{white-space:nowrap;}
 
 /* forms / modal */
 .modal-backdrop{
