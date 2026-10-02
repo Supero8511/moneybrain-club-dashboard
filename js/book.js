@@ -191,9 +191,12 @@ async function initReview() {
 }
 
 /* ---------------- 자료 게시판 ---------------- */
-function initMaterials() {
+async function initMaterials() {
   const staff = isStaff(currentProfile);
   document.getElementById("materials-upload-card").style.display = staff ? "" : "none";
+
+  const materialUsers = await listUsers();
+  const materialUsersById = Object.fromEntries(materialUsers.map(u => [u.uid, u]));
 
   watchBookMaterials(bookId, (items) => {
     const host = document.getElementById("materials-list");
@@ -201,15 +204,22 @@ function initMaterials() {
       host.innerHTML = `<p class="hint">아직 등록된 자료가 없습니다.</p>`;
       return;
     }
-    host.innerHTML = items.map(it => `
+    host.innerHTML = items.map(it => {
+      const uploaderName = materialUsersById[it.uploadedBy]?.nickname || "(알 수 없음)";
+      const uploadedAt = it.createdAt ? new Date(it.createdAt).toLocaleString("ko-KR", {
+        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
+      }) : "";
+      return `
       <div class="list-row" data-id="${it.id}">
         <div>
           <div class="name"><a href="${escapeHtml(it.fileUrl)}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a></div>
           <div class="sub">${escapeHtml(it.fileName || "")}${it.note ? " · " + escapeHtml(it.note) : ""}</div>
+          <div class="sub">${escapeHtml(uploaderName)}${uploadedAt ? " · " + uploadedAt : ""}</div>
         </div>
         ${staff ? `<button class="btn danger small" data-del="${it.id}" data-path="${it.filePath || ""}">삭제</button>` : ""}
       </div>
-    `).join("");
+    `;
+    }).join("");
     if (staff) {
       [...host.querySelectorAll("[data-del]")].forEach(btn => {
         btn.onclick = () => {
