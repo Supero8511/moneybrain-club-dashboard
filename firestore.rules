@@ -48,11 +48,18 @@ service cloud.firestore {
         allow write: if staff();
       }
 
-      // 릴레이 인증 - 열람 권한자는 글귀/느낀점/완료체크 수정 가능, 행 추가/삭제는 운영진만
+      // 릴레이 인증 - 날짜/요일/담당자는 운영진만 등록/수정, 담당 인증자 본인은 글귀/느낀점/완료체크만 수정 가능
       match /relay/{rowId} {
         allow read: if bookAccess(bookId);
         allow create, delete: if staff();
-        allow update: if bookAccess(bookId);
+        allow update: if staff() ||
+          (signedIn() &&
+           ('assigneeUids' in resource.data) &&
+           resource.data.assigneeUids.hasAny([request.auth.uid]) &&
+           request.resource.data.date == resource.data.date &&
+           request.resource.data.weekday == resource.data.weekday &&
+           request.resource.data.assignee == resource.data.assignee &&
+           request.resource.data.assigneeUids == resource.data.assigneeUids);
       }
 
       // 서평 인증 - 본인 문서만 작성, 운영진은 전체 수정
