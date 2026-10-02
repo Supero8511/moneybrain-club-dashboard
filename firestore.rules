@@ -37,8 +37,12 @@ service cloud.firestore {
       allow write: if admin();
 
       // 책별 열람 권한 (문서가 존재 = 권한 부여됨). 어드민만 부여/회수.
+      // 읽기는 bookAccess()로 통일 — 이 책에 접근 권한이 있는 멤버라면 전체 멤버 목록(uid만, 개인정보 없음)을
+      // 조회할 수 있어야 서평인증 탭 등에서 멤버 목록을 불러올 수 있습니다. (기존에는 "본인 문서만" 허용했는데,
+      // Firestore는 쿼리 전체가 모든 결과 문서에 대해 규칙을 만족해야 허용하므로, 멤버 계정에서
+      // listBookMembers()로 전체 목록을 가져오는 쿼리 자체가 통째로 거부되어 서평인증 탭이 비어 보이는 문제가 있었습니다.)
       match /members/{uid} {
-        allow read: if signedIn() && (request.auth.uid == uid || staff());
+        allow read: if bookAccess(bookId);
         allow write: if admin();
       }
 
