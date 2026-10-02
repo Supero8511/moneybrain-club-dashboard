@@ -24,6 +24,7 @@
         <button class="tab-btn active" data-tab="progress">진도표</button>
         <button class="tab-btn" data-tab="relay">릴레이인증</button>
         <button class="tab-btn" data-tab="review">서평인증</button>
+        <button class="tab-btn" data-tab="materials">자료 게시판</button>
         <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">운영진 자료실</button>
       </div>
 
@@ -56,6 +57,22 @@
             <tbody id="review-rows"></tbody>
           </table>
         </div>
+      </div>
+
+      <div class="tab-panel" id="panel-materials">
+        <div class="card" id="materials-upload-card" style="margin-bottom:18px; display:none;">
+          <h3>자료 올리기</h3>
+          <p class="hint">발제문, 자료 PDF 등을 올릴 수 있습니다. (파일당 최대 10MB, 운영진만 업로드 가능)</p>
+          <form id="materials-form">
+            <div class="row-flex">
+              <div class="field"><label>제목</label><input type="text" id="material-title" placeholder="예) 1주차 발제문" required /></div>
+              <div class="field"><label>파일</label><input type="file" id="material-file" required /></div>
+            </div>
+            <div class="field"><label>메모</label><input type="text" id="material-note" placeholder="메모 (선택)" /></div>
+            <button class="btn primary" type="submit">올리기</button>
+          </form>
+        </div>
+        <div id="materials-list"></div>
       </div>
 
       <div class="tab-panel" id="panel-staff">

@@ -15,16 +15,32 @@ service firebase.storage {
         : 'member';
     }
     function staff() { return signedIn() && (superAdmin() || myRole() == 'admin' || myRole() == 'staff'); }
+    function bookAccess(bookId) {
+      return staff() ||
+        (signedIn() && firestore.exists(/databases/monybrainclub/documents/books/$(bookId)/members/$(request.auth.uid)));
+    }
+    // 건당 업로드 용량 제한 (10MB)
+    function withinSizeLimit() { return request.resource.size < 10 * 1024 * 1024; }
 
     // 운영진 전용 인증사진 자료실 - 업로드/열람 모두 운영진만
     match /staffArchive/{bookId}/{fileName} {
-      allow read, write: if staff();
+      allow read: if staff();
+      allow create, update: if staff() && withinSizeLimit();
+      allow delete: if staff();
     }
 
     // 책 표지 - 포털에 노출되므로 누구나 열람, 업로드는 운영진만
     match /covers/{fileName} {
       allow read: if true;
-      allow write: if staff();
+      allow create, update: if staff() && withinSizeLimit();
+      allow delete: if staff();
+    }
+
+    // 책별 자료 게시판 - 그 책 열람 권한자는 다운로드 가능, 업로드/삭제는 운영진만
+    match /materials/{bookId}/{fileName} {
+      allow read: if bookAccess(bookId);
+      allow create, update: if staff() && withinSizeLimit();
+      allow delete: if staff();
     }
   }
 }
