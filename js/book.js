@@ -4,8 +4,11 @@ import {
   watchProgress, addProgressRow, updateProgressRow, deleteProgressRow,
   watchRelay, addRelayRow, updateRelayRow, deleteRelayRow,
   watchReviews, setReview,
-  watchStaffArchive, addStaffArchiveEntry, deleteStaffArchiveEntry
+  watchStaffArchive, addStaffArchiveEntry, deleteStaffArchiveEntry,
+  watchBookMaterials, addBookMaterial, deleteBookMaterial
 } from "./data.js";
+
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10MB (storage.rules 와 동일하게 유지)
 
 mountHeader("book");
 
@@ -44,9 +47,9 @@ async function evaluateAccess() {
     allowed = false;
     gate.innerHTML = `
       <div class="lock-screen">
-        <h2>🔒 로그인이 필요합니다</h2>
-        <p>"${escapeHtml(book.title)}" 페이지를 보려면 로그인하거나 회원가입해주세요.</p>
-        <button class="btn primary" id="gate-login-btn" style="margin-top:10px;">로그인 / 가입</button>
+        <h2>🔒 로기인이 필요합니다</h2>
+        <p>"${escapeHtml(book.title)}" 페이지를 보린린 로기인하거나 회원가입해주세요.</p>
+        <button class="btn primary" id="gate-login-btn" style="margin-top:10px;">로기인 / 가입</button>
       </div>
     `;
     document.getElementById("gate-login-btn").onclick = () => openAuthModal();
@@ -55,7 +58,7 @@ async function evaluateAccess() {
   }
   allowed = isStaff(currentProfile) || await hasBookAccess(bookId, currentUser.uid);
   if (!allowed) {
-    gate.innerHTML = `<div class="lock-screen"><h2>🔒 접근 권한이 없습니다</h2><p>이 책의 열람 권한이 없습니다. 어드민에게 문의해주세요.</p></div>`;
+    gate.innerHTML = `<div class="lock-screen"><h2>🔒 접근 권한이 없습니다</h2><p>이 책의 열람 권한이 없습니다. 어뛈맘에게 문의해주세요.</p></div>`;
     content.style.display = "none";
     return;
   }
@@ -66,6 +69,7 @@ async function evaluateAccess() {
   initProgress();
   initRelay();
   initReview();
+  initMaterials();
   if (isStaff(currentProfile)) initStaffArchive();
 }
 
@@ -159,7 +163,7 @@ async function initReview() {
     const reviewsByUid = Object.fromEntries(reviewDocs.map(r => [r.id, r]));
     const tbody = document.getElementById("review-rows");
     if (!members.length) {
-      tbody.innerHTML = `<tr><td colspan="3" class="mini-tag">이 책에 열람 권한이 부여된 멤버가 없습니다.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3" class="mini-tag">이 책에 열람 권한이 벀처진 멤버가 없습니다.</td></tr>`;
       return;
     }
     tbody.innerHTML = members.map(uid => {
@@ -184,6 +188,61 @@ async function initReview() {
       el.addEventListener("change", () => setReview(bookId, el.dataset.uid, { link: el.value, updatedAt: Date.now() }));
     });
   });
+}
+
+/* ---------------- 자료 게시판 ---------------- */
+function initMaterials() {
+  const staff = isStaff(currentProfile);
+  document.getElementById("materials-upload-card").style.display = staff ? "" : "none";
+
+  watchBookMaterials(bookId, (items) => {
+    const host = document.getElementById("materials-list");
+    if (!items.length) {
+      host.innerHTML = `<p class="hint">아직 등록된 자료가 없습니다.</p>`;
+      return;
+    }
+    host.innerHTML = items.map(it => `
+      <div class="list-row" data-id="${it.id}">
+        <div>
+          <div class="name"><a href="${escapeHtml(it.fileUrl)}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a></div>
+          <div class="sub">${escapeHtml(it.fileName || "")}${it.note ? " · " + escapeHtml(it.note) : ""}</div>
+        </div>
+        ${staff ? `<button class="btn danger small" data-del="${it.id}" data-path="${it.filePath || ""}">삭제</button>` : ""}
+      </div>
+    `).join("");
+    if (staff) {
+      [...host.querySelectorAll("[data-del]")].forEach(btn => {
+        btn.onclick = () => {
+          if (confirm("정말 삭제하시겠습니까?")) deleteBookMaterial(bookId, btn.dataset.id, btn.dataset.path);
+        };
+      });
+    }
+  });
+
+  if (!staff) return;
+  document.getElementById("materials-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const title = document.getElementById("material-title").value.trim();
+    const file = document.getElementById("material-file").files[0];
+    const note = document.getElementById("material-note").value.trim();
+    if (!title || !file) return;
+    if (file.size > MAX_UPLOAD_BYTES) {
+      alert("파일은 10MB 이하만 업로드할 수 있습니다.");
+      return;
+    }
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "업로드 중…";
+    try {
+      await addBookMaterial(bookId, { file, title, note, uploadedBy: currentUser.uid });
+      e.target.reset();
+    } catch (err) {
+      alert("자료 업로드 중 오류가 발생했습니다: " + (err.message || err));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "올리기";
+    }
+  };
 }
 
 /* ---------------- 운영진 전용 자료실 ---------------- */
@@ -215,12 +274,16 @@ function initStaffArchive() {
     const file = document.getElementById("archive-file").files[0];
     const note = document.getElementById("archive-note").value.trim();
     if (!name) return;
+    if (file && file.size > MAX_UPLOAD_BYTES) {
+      alert("사진은 10MB 이하만 업로드할 수 있습니다.");
+      return;
+    }
     await addStaffArchiveEntry(bookId, { file, memberName: name, note, uploadedBy: currentUser.uid });
     e.target.reset();
   };
 }
 
-/* ---------------- 공통 편집 유틸 ---------------- */
+/* ---------------- 어뛈맘용 유피티 ---------------- */
 function editableCell(editable, value, field) {
   if (!editable) return escapeHtml(value || "");
   return `<input type="text" data-field="${field}" value="${escapeHtml(value || "")}" />`;
