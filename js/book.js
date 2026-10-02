@@ -165,6 +165,24 @@ async function initRelay() {
     relayRowsCache = rows;
     const tbody = document.getElementById("relay-rows");
 
+    // (운영진 전용 1회 자동 보정) 예전에 구글시트로 한 번에 등록된 일부 릴레이 행은
+    // 담당자 UID(assigneeUids) 없이 닉네임 텍스트만 저장되어 있습니다. 이 경우
+    // Firestore 보안 규칙상 본인(멤버)이 글귀·느낀점을 저장해도 조용히 거부되고,
+    // 잠시 후 원래 값으로 되돌아가 "입력한 내용이 사라지는" 것처럼 보이는 문제가
+    // 있었습니다. 운영진이 이 탭을 열 때 닉네임으로 UID를 매칭해 한 번만 채워줍니다.
+    if (staff && memberOptions.length) {
+      const nicknameToUid = Object.fromEntries(memberOptions.map(m => [m.nickname, m.uid]));
+      rows.forEach(r => {
+        if ((!Array.isArray(r.assigneeUids) || !r.assigneeUids.length) && r.assignee) {
+          const names = r.assignee.split(/[,、·]/).map(s => s.trim()).filter(Boolean);
+          const uids = [...new Set(names.map(n => nicknameToUid[n]).filter(Boolean))];
+          if (uids.length) {
+            updateRelayRow(bookId, r.id, { assigneeUids: uids }).catch(() => {});
+          }
+        }
+      });
+    }
+
     // Firestore에 변경사항을 저장하면(예: 문구 저장) 이 콜백이 다시 호출되어
     // tbody를 통째로 다시 그립니다. 그 사이에 사용자가 다른 칸(예: 느낀점)에
     // 포커스를 옮겨 아직 저장되지 않은 내용을 입력 중이었다면, 다시 그리는
@@ -220,10 +238,19 @@ async function initRelay() {
       }).join("");
     }
     [...tbody.querySelectorAll("textarea[data-field]")].forEach(el => {
-      el.addEventListener("change", () => updateRelayRow(bookId, el.dataset.id, { [el.dataset.field]: el.value }));
+      el.addEventListener("change", () => {
+        updateRelayRow(bookId, el.dataset.id, { [el.dataset.field]: el.value }).catch((err) => {
+          // 저장이 실패하면(권한 문제 등) 조용히 사라지지 않고 바로 알려줍니다.
+          alert("저장에 실패했습니다. 운영진에게 문의해주세요.\n(" + (err?.message || err) + ")");
+        });
+      });
     });
     [...tbody.querySelectorAll("input[data-check]")].forEach(el => {
-      el.addEventListener("change", () => updateRelayRow(bookId, el.dataset.id, { done: el.checked }));
+      el.addEventListener("change", () => {
+        updateRelayRow(bookId, el.dataset.id, { done: el.checked }).catch((err) => {
+          alert("저장에 실패했습니다. 운영진에게 문의해주세요.\n(" + (err?.message || err) + ")");
+        });
+      });
     });
     if (staff) {
       [...tbody.querySelectorAll("[data-reassign]")].forEach(btn => {
