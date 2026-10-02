@@ -65,7 +65,13 @@ async function evaluateAccess() {
   }
   gate.innerHTML = "";
   content.style.display = "block";
-  if (isStaff(currentProfile)) document.getElementById("staff-tab-btn").style.display = "";
+  if (isStaff(currentProfile)) {
+    document.getElementById("staff-tab-btn").style.display = "";
+  } else {
+    // STAFF/어드민 미만 사용자에게는 운영진 자료실 탭/내용이 노출되지 않도록 이중으로 막습니다.
+    document.getElementById("staff-tab-btn").style.display = "none";
+    document.getElementById("panel-staff").style.display = "none";
+  }
   initTabs();
   initProgress();
   initRelay();
@@ -84,25 +90,53 @@ function initTabs() {
 }
 
 /* ---------------- 진도표 ---------------- */
+let progressRowsCache = [];
+const editingProgressIds = new Set();
+
+function renderProgressRows() {
+  const staff = isStaff(currentProfile);
+  const tbody = document.getElementById("progress-rows");
+  const rows = progressRowsCache;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="mini-tag">아직 등록된 진도표가 없습니다.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(r => {
+      // 운영진이 "수정"을 누르기 전까지는 입력칸이 아니라 확정된 텍스트로 보입니다.
+      const editing = staff && editingProgressIds.has(r.id);
+      return `
+        <tr data-id="${r.id}">
+          <td>${editableCell(editing, r.period, "period")}</td>
+          <td>${editableCell(editing, r.pages, "pages")}</td>
+          <td>${editableCell(editing, r.toc, "toc")}</td>
+          <td>${staff ? `
+            <div class="row-actions">
+              <button class="btn ghost small" data-edit-toggle="${r.id}">${editing ? "확정" : "수정"}</button>
+              <button class="btn danger small" data-del="${r.id}">삭제</button>
+            </div>` : ""}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+  if (staff) wireEditable(tbody, (id, field, value) => updateProgressRow(bookId, id, { [field]: value }));
+  wireDelete(tbody, (id) => deleteProgressRow(bookId, id));
+  if (staff) {
+    [...tbody.querySelectorAll("[data-edit-toggle]")].forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.editToggle;
+        if (editingProgressIds.has(id)) editingProgressIds.delete(id);
+        else editingProgressIds.add(id);
+        renderProgressRows();
+      };
+    });
+  }
+}
+
 function initProgress() {
   const staff = isStaff(currentProfile);
   document.getElementById("progress-th-del").textContent = "";
   watchProgress(bookId, (rows) => {
-    const tbody = document.getElementById("progress-rows");
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="4" class="mini-tag">아직 등록된 진도표가 없습니다.</td></tr>`;
-    } else {
-      tbody.innerHTML = rows.map(r => `
-        <tr data-id="${r.id}">
-          <td>${editableCell(staff, r.period, "period")}</td>
-          <td>${editableCell(staff, r.pages, "pages")}</td>
-          <td>${editableCell(staff, r.toc, "toc")}</td>
-          <td>${staff ? `<button class="btn danger small" data-del="${r.id}">삭제</button>` : ""}</td>
-        </tr>
-      `).join("");
-    }
-    if (staff) wireEditable(tbody, (id, field, value) => updateProgressRow(bookId, id, { [field]: value }));
-    wireDelete(tbody, (id) => deleteProgressRow(bookId, id));
+    progressRowsCache = rows;
+    renderProgressRows();
   });
 
   const addWrap = document.getElementById("progress-add-wrap");
@@ -134,7 +168,9 @@ async function initRelay() {
       tbody.innerHTML = `<tr><td colspan="7" class="mini-tag">아직 등록된 릴레이 일정이 없습니다.</td></tr>`;
     } else {
       tbody.innerHTML = rows.map(r => {
-        const canEdit = staff || isMyRelayRow(r);
+        const canEditBase = staff || isMyRelayRow(r);
+        // 완료 체크가 되어 있으면 글귀·느낀점은 잠겨서 수정할 수 없고, 체크를 해제해야 다시 수정할 수 있습니다.
+        const canEditContent = canEditBase && !r.done;
         const mine = !staff && isMyRelayRow(r);
         const weekdayClass = r.weekday === "토" ? "weekday-sat" : (r.weekday === "일" ? "weekday-sun" : "");
         const rowClass = [r.done ? "is-done" : "", mine ? "is-mine" : ""].filter(Boolean).join(" ");
@@ -148,14 +184,14 @@ async function initRelay() {
               ${staff ? `<button class="btn ghost small" data-reassign="${r.id}">수정</button>` : ""}
             </div>
           </td>
-          <td>${canEdit
+          <td>${canEditContent
             ? `<textarea data-id="${r.id}" data-field="quote" rows="2">${escapeHtml(r.quote || "")}</textarea>`
             : `<div class="readonly-text">${r.quote ? escapeHtml(r.quote) : `<span class="mini-tag">—</span>`}</div>`}</td>
-          <td>${canEdit
+          <td>${canEditContent
             ? `<textarea data-id="${r.id}" data-field="feeling" rows="2">${escapeHtml(r.feeling || "")}</textarea>`
             : `<div class="readonly-text">${r.feeling ? escapeHtml(r.feeling) : `<span class="mini-tag">—</span>`}</div>`}</td>
           <td style="text-align:center;">
-            ${canEdit
+            ${canEditBase
               ? `<label class="check-pill"><input type="checkbox" data-id="${r.id}" data-check="done" ${r.done ? "checked" : ""}/></label>`
               : (r.done ? `<span class="pill-done">완료</span>` : `<span class="pill-pending">대기</span>`)}
           </td>
@@ -248,14 +284,16 @@ function formatDateDot(dateStr) {
   return `${y}.${Number(m)}.${Number(d)}`;
 }
 
-// 화면 표시용 짧은 날짜 (연도 2자리). 저장된 값 형식(2026.10.1 / 2026-10-01 등)에 상관없이 표시만 줄여줍니다.
+// 화면 표시용 짧은 날짜 (YYMMDD, 6자리 고정폭). 저장된 값 형식(2026.10.1 / 2026-10-01 등)에 상관없이 표시만 줄여줍니다.
 function shortDate(dateStr) {
   if (!dateStr) return "";
   const parts = String(dateStr).split(/[.\-/]/).filter(Boolean);
   if (parts.length < 3) return dateStr;
   let [y, m, d] = parts;
   if (y.length === 4) y = y.slice(-2);
-  return `${y}.${Number(m)}.${Number(d)}`;
+  const mm = String(Number(m)).padStart(2, "0");
+  const dd = String(Number(d)).padStart(2, "0");
+  return `${y}${mm}${dd}`;
 }
 
 function openReassignModal(row, memberOptions) {
@@ -378,6 +416,7 @@ async function initReview() {
 /* ---------------- 자료 게시판 ---------------- */
 async function initMaterials() {
   const staff = isStaff(currentProfile);
+  document.getElementById("materials-layout").classList.toggle("single-col", !staff);
   document.getElementById("materials-upload-card").style.display = staff ? "" : "none";
 
   const materialUsers = await listUsers();

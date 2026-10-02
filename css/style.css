@@ -158,7 +158,16 @@ td textarea{resize:vertical;min-height:40px;}
 .relay-table .weekday-sun{color:var(--warn);font-weight:800;}
 .readonly-text{font-size:.84rem;color:var(--ink-soft);white-space:pre-wrap;word-break:break-word;line-height:1.5;}
 .assignee-cell{display:flex;flex-direction:column;gap:5px;align-items:flex-start;}
-.assignee-cell span{white-space:nowrap;}
+.assignee-cell span{white-space:nowrap;font-weight:800;}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* 자료 게시판 2단 레이아웃 */
+.materials-layout{display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start;}
+.materials-layout.single-col{grid-template-columns:1fr;}
+.materials-upload-col .card{margin-bottom:0;}
+@media (max-width:760px){
+  .materials-layout{grid-template-columns:1fr;}
+}
 
 /* forms / modal */
 .modal-backdrop{

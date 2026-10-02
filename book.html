@@ -45,7 +45,7 @@
         </div>
         <div class="table-scroll">
           <table class="relay-table">
-            <thead><tr><th style="width:11%;">날짜</th><th style="width:6%;">요일</th><th style="width:10%;">인증자</th><th>문구</th><th>느낀점</th><th style="width:8%;">완료</th><th id="relay-th-del" style="width:1%;"></th></tr></thead>
+            <thead><tr><th style="width:8%;">날짜</th><th style="width:5%;">요일</th><th style="width:10%;">인증자</th><th>문구</th><th>느낀점</th><th style="width:8%;">완료</th><th id="relay-th-del" style="width:1%;"></th></tr></thead>
             <tbody id="relay-rows"></tbody>
           </table>
         </div>
@@ -63,24 +63,28 @@
       </div>
 
       <div class="tab-panel" id="panel-materials">
-        <div class="card" id="materials-upload-card" style="margin-bottom:18px; display:none;">
-          <h3>자료 올리기</h3>
-          <p class="hint">발제문, 자료 PDF 등을 올릴 수 있습니다. (파일당 최대 10MB, 운영진만 업로드 가능)</p>
-          <form id="materials-form">
-            <div class="row-flex">
-              <div class="field"><label>제목</label><input type="text" id="material-title" placeholder="예) 1주차 발제문" required /></div>
-              <div class="field"><label>파일</label><input type="file" id="material-file" required /></div>
+        <div class="materials-layout" id="materials-layout">
+          <div class="materials-list-col">
+            <div id="materials-list"></div>
+          </div>
+          <div class="materials-upload-col">
+            <div class="card" id="materials-upload-card" style="display:none;">
+              <h3>자료 올리기</h3>
+              <p class="hint">발제문, 자료 PDF 등을 올릴 수 있습니다. (파일당 최대 10MB, 운영진만 업로드 가능)</p>
+              <form id="materials-form">
+                <div class="field"><label>제목</label><input type="text" id="material-title" placeholder="예) 1주차 발제문" required /></div>
+                <div class="field"><label>파일</label><input type="file" id="material-file" required /></div>
+                <div class="field"><label>메모</label><input type="text" id="material-note" placeholder="메모 (선택)" /></div>
+                <button class="btn primary" type="submit">올리기</button>
+              </form>
             </div>
-            <div class="field"><label>메모</label><input type="text" id="material-note" placeholder="메모 (선택)" /></div>
-            <button class="btn primary" type="submit">올리기</button>
-          </form>
+          </div>
         </div>
-        <div id="materials-list"></div>
       </div>
 
       <div class="tab-panel" id="panel-staff">
         <div class="card" style="margin-bottom:18px;">
-          <h3>인증 기록 추가</h3>
+          <h3>모임 인증사진 추가</h3>
           <p class="hint">멤버 인증 사진과 메모를 운영진만 볼 수 있도록 보관합니다.</p>
           <form id="archive-form">
             <div class="row-flex">
