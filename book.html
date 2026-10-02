@@ -22,7 +22,7 @@
     <div id="book-content" style="display:none;">
       <div class="tabs">
         <button class="tab-btn active" data-tab="progress">진도표</button>
-        <button class="tab-btn" data-tab="relay">릴레이증</button>
+        <button class="tab-btn" data-tab="relay">릴레이인증</button>
         <button class="tab-btn" data-tab="review">서평인증</button>
         <button class="tab-btn" data-tab="materials">자료 게시판</button>
         <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">운영진 자료실</button>
@@ -40,12 +40,12 @@
 
       <div class="tab-panel" id="panel-relay">
         <div class="relay-toolbar">
-          <p class="mini-tag">인증자만 글귀·느끼점을 작성하고 완료 체크를 할 수 있습니다. (날짜·요일·인증자는 운영진이 등록)</p>
+          <p class="mini-tag">인증자만 글귀·느낀점을 작성하고 완료 체크를 할 수 있습니다. (날짜·요일·인증자는 운영진이 등록)</p>
           <button class="btn ghost small" id="relay-pdf-btn">📄 완료된 인증 PDF로 출력</button>
         </div>
         <div class="table-scroll">
           <table class="relay-table">
-            <thead><tr><th style="width:8%;">날짜</th><th style="width:5%;">요일</th><th style="width:10%;">인증자</th><th style="width:34%;">문구</th><th style="width:34%;">느끼점</th><th style="width:8%;">완료</th><th id="relay-th-del" style="width:1%;"></th></tr></thead>
+            <thead><tr><th style="width:8%;">날짜</th><th style="width:5%;">요일</th><th style="width:10%;">인증자</th><th style="width:34%;">문구</th><th style="width:34%;">느낀점</th><th style="width:8%;">완료</th><th id="relay-th-del" style="width:1%;"></th></tr></thead>
             <tbody id="relay-rows"></tbody>
           </table>
         </div>
