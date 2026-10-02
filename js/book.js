@@ -164,6 +164,25 @@ async function initRelay() {
   watchRelay(bookId, (rows) => {
     relayRowsCache = rows;
     const tbody = document.getElementById("relay-rows");
+
+    // Firestore에 변경사항을 저장하면(예: 문구 저장) 이 콜백이 다시 호출되어
+    // tbody를 통째로 다시 그립니다. 그 사이에 사용자가 다른 칸(예: 느낀점)에
+    // 포커스를 옮겨 아직 저장되지 않은 내용을 입력 중이었다면, 다시 그리는
+    // 과정에서 그 입력칸(textarea)이 통째로 교체되면서 입력 중이던 내용이
+    // 사라지는 문제가 있었습니다. 다시 그리기 직전에 포커스된 textarea의
+    // 값/커서 위치를 기억해뒀다가, 다시 그린 뒤 같은 칸에 그대로 복원합니다.
+    const active = document.activeElement;
+    let preserved = null;
+    if (active && active.tagName === "TEXTAREA" && tbody.contains(active)) {
+      preserved = {
+        id: active.dataset.id,
+        field: active.dataset.field,
+        value: active.value,
+        selectionStart: active.selectionStart,
+        selectionEnd: active.selectionEnd,
+      };
+    }
+
     if (!rows.length) {
       tbody.innerHTML = `<tr><td colspan="7" class="mini-tag">아직 등록된 릴레이 일정이 없습니다.</td></tr>`;
     } else {
@@ -215,6 +234,18 @@ async function initRelay() {
       });
     }
     wireDelete(tbody, (id) => deleteRelayRow(bookId, id));
+
+    // 포커스/입력 중이던 내용 복원
+    if (preserved) {
+      const restored = tbody.querySelector(`textarea[data-id="${CSS.escape(preserved.id)}"][data-field="${preserved.field}"]`);
+      if (restored && restored.value !== preserved.value) {
+        restored.value = preserved.value;
+      }
+      if (restored) {
+        restored.focus();
+        try { restored.setSelectionRange(preserved.selectionStart, preserved.selectionEnd); } catch (e) { /* no-op */ }
+      }
+    }
   });
 
   const addWrap = document.getElementById("relay-add-wrap");
