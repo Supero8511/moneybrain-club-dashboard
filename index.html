@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>머니브레인클럽 — 독서모임 대시보드</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%231f2a44%22/><text x=%2250%22 y=%2265%22 font-size=%2244%22 fill=%22%23c99a3e%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-weight=%22900%22>M</text></svg>">
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="wrap">
+    <div class="hero">
+      <h1>머니브레인클럽 독서모임</h1>
+      <p>월별로 진행한 책을 모아보는 포털입니다. 책을 클릭하면 진도표 · 릴레이인증 · 서평인증을 확인할 수 있어요.</p>
+    </div>
+
+    <div class="section-title">
+      <h2>진행한 책</h2>
+      <span class="meta" id="book-count-meta"></span>
+    </div>
+
+    <div id="book-grid" class="book-grid">
+      <div class="empty">불러오는 중…</div>
+    </div>
+  </main>
+
+  <p class="footer-note">머니브레인클럽 운영진 전용 대시보드 · 접근 권한은 어드민이 관리합니다.</p>
+
+  <script type="module">
+    import { mountHeader, onReady, isStaff, escapeHtml, openAuthModal } from "./js/common.js";
+    import { watchBooks, hasBookAccess } from "./js/data.js";
+
+    mountHeader("portal");
+
+    const PALETTES = [
+      ["#3a4a74","#1f2a44"], ["#7a5a16","#4a3a0d"], ["#5b6478","#1a2233"],
+      ["#2f8f5b","#1d5a38"], ["#b2452c","#6e2a1a"], ["#4a3a7a","#2a2047"],
+      ["#1f6f7a","#124148"], ["#a05a9c","#5c3359"]
+    ];
+    function paletteFor(str){
+      let h = 0; for (const c of str) h = (h*31 + c.charCodeAt(0)) >>> 0;
+      return PALETTES[h % PALETTES.length];
+    }
+
+    let allBooks = [];
+    let currentUser = null, currentProfile = null;
+
+    function render() {
+      const grid = document.getElementById("book-grid");
+      const meta = document.getElementById("book-count-meta");
+      if (!allBooks.length) {
+        grid.innerHTML = `<div class="empty">아직 등록된 책이 없습니다. 어드민이 "관리자" 페이지에서 책을 추가할 수 있어요.</div>`;
+        meta.textContent = "";
+        return;
+      }
+      meta.textContent = `총 ${allBooks.length}권`;
+      grid.innerHTML = allBooks.map(b => cardHtml(b)).join("");
+
+      [...grid.querySelectorAll(".book-card")].forEach(card => {
+        card.addEventListener("click", async () => {
+          const bookId = card.dataset.id;
+          if (!currentUser) { openAuthModal(); return; }
+          const staff = isStaff(currentProfile);
+          const allowed = staff || await hasBookAccess(bookId, currentUser.uid);
+          if (!allowed) return;
+          location.href = `./book.html?id=${encodeURIComponent(bookId)}`;
+        });
+      });
+    }
+
+    function cardHtml(b) {
+      const [c1, c2] = paletteFor(b.title || b.id);
+      const locked = currentUser && !isStaff(currentProfile) && b._locked;
+      return `
+        <div class="book-card ${locked ? "locked" : ""}" data-id="${b.id}">
+          <div class="book-cover" style="--c1:${c1};--c2:${c2};">
+            ${b.coverUrl ? `<img src="${b.coverUrl}" alt="" style="width:100%;height:100%;object-fit:cover;">` : `<span>${escapeHtml(b.title || "제목없음")}</span>`}
+          </div>
+          <div class="book-body">
+            <div class="book-title">${escapeHtml(b.title || "제목없음")}</div>
+            <div class="badge-row">
+              ${b.status === "finished" ? `<span class="badge finished">● Finished</span>` : `<span class="badge ongoing">● 진행중</span>`}
+              ${b.challenge ? `<span class="badge challenge">2026 challenge</span>` : ""}
+            </div>
+            ${locked ? `<div class="lock-note">🔒 비공개 · 접근 권한 필요</div>` : ""}
+          </div>
+        </div>
+      `;
+    }
+
+    async function applyLocks() {
+      if (!currentUser) { allBooks.forEach(b => b._locked = true); render(); return; }
+      if (isStaff(currentProfile)) { allBooks.forEach(b => b._locked = false); render(); return; }
+      for (const b of allBooks) {
+        b._locked = !(await hasBookAccess(b.id, currentUser.uid));
+      }
+      render();
+    }
+
+    onReady((user, profile) => {
+      currentUser = user; currentProfile = profile;
+      applyLocks();
+    });
+
+    watchBooks((books) => { allBooks = books; applyLocks(); });
+  </script>
+</body>
+</html>

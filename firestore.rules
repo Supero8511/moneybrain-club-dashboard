@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ⚠️ js/firebase-config.js 의 SUPER_ADMIN_EMAIL 과 반드시 동일하게 유지하세요.
+    function SUPER_ADMIN_EMAIL() { return 'idcrazyzz@gmail.com'; }
+
+    function signedIn() { return request.auth != null; }
+    function superAdmin() { return signedIn() && request.auth.token.email == SUPER_ADMIN_EMAIL(); }
+    function myRole() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : 'member';
+    }
+    function admin() { return superAdmin() || myRole() == 'admin'; }
+    function staff() { return admin() || myRole() == 'staff'; }
+    function bookAccess(bookId) {
+      return staff() || exists(/databases/$(database)/documents/books/$(bookId)/members/$(request.auth.uid));
+    }
+
+    // 사용자 프로필 (닉네임 / 역할)
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == uid &&
+        (request.resource.data.role == 'member' ||
+         (request.resource.data.role == 'admin' && request.auth.token.email == SUPER_ADMIN_EMAIL()));
+      allow update: if signedIn() && (
+        (request.auth.uid == uid && request.resource.data.role == resource.data.role) ||
+        admin()
+      );
+      allow delete: if admin();
+    }
+
+    // 책 메타데이터 (제목/저자/상태/챌린지 태그) - 목록은 로그인한 모두에게 보임
+    match /books/{bookId} {
+      allow read: if signedIn();
+      allow write: if admin();
+
+      // 책별 열람 권한 (문서가 존재 = 권한 부여됨). 어드민만 부여/회수.
+      match /members/{uid} {
+        allow read: if signedIn() && (request.auth.uid == uid || staff());
+        allow write: if admin();
+      }
+
+      // 진도표 - 열람 권한자는 읽기, 운영진만 수정
+      match /progress/{rowId} {
+        allow read: if bookAccess(bookId);
+        allow write: if staff();
+      }
+
+      // 릴레이 인증 - 열람 권한자는 글귀/느낀점/완료체크 수정 가능, 행 추가/삭제는 운영진만
+      match /relay/{rowId} {
+        allow read: if bookAccess(bookId);
+        allow create, delete: if staff();
+        allow update: if bookAccess(bookId);
+      }
+
+      // 서평 인증 - 본인 문서만 작성, 운영진은 전체 수정
+      match /reviews/{uid} {
+        allow read: if bookAccess(bookId);
+        allow write: if staff() || (signedIn() && request.auth.uid == uid && bookAccess(bookId));
+      }
+
+      // 운영진 전용 인증사진/후기 자료실
+      match /staffArchive/{entryId} {
+        allow read, write: if staff();
+      }
+    }
+  }
+}

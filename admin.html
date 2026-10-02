@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>관리자 — 머니브레인클럽</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%231f2a44%22/><text x=%2250%22 y=%2265%22 font-size=%2244%22 fill=%22%23c99a3e%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-weight=%22900%22>M</text></svg>">
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="wrap">
+    <div class="hero">
+      <a href="./index.html" style="font-size:.82rem;color:var(--ink-soft);font-weight:700;">← 포털로</a>
+      <h1>관리자</h1>
+      <p>책 등록, 멤버 역할, 책별 열람 권한을 관리합니다.</p>
+    </div>
+
+    <div id="access-gate"></div>
+
+    <div id="admin-content" class="admin-grid" style="display:none;">
+      <div class="card">
+        <h3>책 추가</h3>
+        <p class="hint">새 책을 추가하면 포털 첫 화면에 바로 노출됩니다.</p>
+        <form id="book-form">
+          <div class="row-flex">
+            <div class="field"><label>제목</label><input type="text" id="bf-title" required placeholder="예) 부의 갈림길" /></div>
+            <div class="field"><label>저자</label><input type="text" id="bf-author" placeholder="예) 로버트 기요사키" /></div>
+          </div>
+          <div class="row-flex">
+            <div class="field"><label>진행 월</label><input type="text" id="bf-month" placeholder="예) 2026.10" /></div>
+            <div class="field">
+              <label>상태</label>
+              <select id="bf-status"><option value="ongoing">진행중</option><option value="finished">Finished</option></select>
+            </div>
+            <div class="field" style="flex:0 0 auto;">
+              <label>&nbsp;</label>
+              <label class="check-pill" style="margin-top:9px;"><input type="checkbox" id="bf-challenge" checked/> 2026 challenge</label>
+            </div>
+          </div>
+          <button class="btn primary" type="submit">책 추가</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>책 목록 관리</h3>
+        <p class="hint">상태 변경 · 삭제 · 열람 권한 설정을 할 수 있습니다.</p>
+        <div id="book-list"></div>
+      </div>
+
+      <div class="card">
+        <h3>책별 열람 권한</h3>
+        <p class="hint">책을 선택하고 권한을 부여/회수할 멤버를 체크하세요. 운영진/어드민은 항상 모든 책에 접근할 수 있습니다.</p>
+        <div class="field" style="max-width:320px;">
+          <label>책 선택</label>
+          <select id="access-book-select"></select>
+        </div>
+        <div class="access-grid" id="access-grid"></div>
+      </div>
+
+      <div class="card">
+        <h3>멤버 역할 관리</h3>
+        <p class="hint">member(일반) · staff(운영진) · admin(어드민) 역할을 변경할 수 있습니다.</p>
+        <div id="user-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="./js/admin.js"></script>
+</body>
+</html>

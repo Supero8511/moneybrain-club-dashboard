@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>책 상세 — 머니브레인클럽</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%231f2a44%22/><text x=%2250%22 y=%2265%22 font-size=%2244%22 fill=%22%23c99a3e%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-weight=%22900%22>M</text></svg>">
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="wrap" id="main-wrap">
+    <div class="hero">
+      <a href="./index.html" style="font-size:.82rem;color:var(--ink-soft);font-weight:700;">← 포털로</a>
+      <h1 id="book-title">불러오는 중…</h1>
+      <p id="book-sub"></p>
+    </div>
+
+    <div id="access-gate"></div>
+
+    <div id="book-content" style="display:none;">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="progress">진도표</button>
+        <button class="tab-btn" data-tab="relay">릴레이인증</button>
+        <button class="tab-btn" data-tab="review">서평인증</button>
+        <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">운영진 자료실</button>
+      </div>
+
+      <div class="tab-panel active" id="panel-progress">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th style="width:26%;">기간</th><th style="width:16%;">페이지</th><th>목차 / 범위</th><th id="progress-th-del" style="width:1%;"></th></tr></thead>
+            <tbody id="progress-rows"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px;" id="progress-add-wrap"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-relay">
+        <p class="mini-tag" style="margin:-6px 0 12px;">매일 담당 인증자가 글귀와 느낀점을 남기고 완료 체크를 합니다.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th style="width:12%;">날짜</th><th style="width:6%;">요일</th><th style="width:16%;">담당 인증자</th><th>문구</th><th>느낀점</th><th style="width:8%;">완료</th><th id="relay-th-del" style="width:1%;"></th></tr></thead>
+            <tbody id="relay-rows"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px;" id="relay-add-wrap"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-review">
+        <p class="mini-tag" style="margin:-6px 0 12px;">본인의 서평 인증 링크는 직접 입력/수정할 수 있습니다.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th style="width:20%;">닉네임</th><th>인증 주소</th><th style="width:14%;">상태</th></tr></thead>
+            <tbody id="review-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panel-staff">
+        <div class="card" style="margin-bottom:18px;">
+          <h3>인증 기록 추가</h3>
+          <p class="hint">멤버 인증 사진과 메모를 운영진만 볼 수 있도록 보관합니다.</p>
+          <form id="archive-form">
+            <div class="row-flex">
+              <div class="field"><label>멤버</label><input type="text" id="archive-name" placeholder="닉네임" required /></div>
+              <div class="field"><label>사진</label><input type="file" id="archive-file" accept="image/*" /></div>
+            </div>
+            <div class="field"><label>메모</label><input type="text" id="archive-note" placeholder="메모 (선택)" /></div>
+            <button class="btn primary" type="submit">저장</button>
+          </form>
+        </div>
+        <div class="archive-grid" id="archive-grid"></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="./js/book.js"></script>
+</body>
+</html>

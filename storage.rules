@@ -1,0 +1,28 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ⚠️ firestore.rules 와 동일하게 유지하세요.
+    function SUPER_ADMIN_EMAIL() { return 'idcrazyzz@gmail.com'; }
+
+    function signedIn() { return request.auth != null; }
+    function superAdmin() { return signedIn() && request.auth.token.email == SUPER_ADMIN_EMAIL(); }
+    function myRole() {
+      return firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role
+        : 'member';
+    }
+    function staff() { return signedIn() && (superAdmin() || myRole() == 'admin' || myRole() == 'staff'); }
+
+    // 운영진 전용 인증사진 자료실 - 업로드/열람 모두 운영진만
+    match /staffArchive/{bookId}/{fileName} {
+      allow read, write: if staff();
+    }
+
+    // 책 표지 - 포털에 노출되므로 누구나 열람, 업로드는 운영진만
+    match /covers/{fileName} {
+      allow read: if true;
+      allow write: if staff();
+    }
+  }
+}

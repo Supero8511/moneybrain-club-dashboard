@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>초기 데이터 심기 — 머니브레인클럽</title>
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <main class="wrap">
+    <div class="hero">
+      <a href="./index.html" style="font-size:.82rem;color:var(--ink-soft);font-weight:700;">← 포털로</a>
+      <h1>초기 데이터 심기 (1회용)</h1>
+      <p>10월 책 &lt;부의 갈림길&gt;의 진도표 · 릴레이인증 일정을 Google Sheet 내용 그대로 등록합니다. 어드민으로 로그인한 뒤 버튼을 눌러주세요. 이미 등록했다면 다시 누르지 마세요(중복 생성됩니다).</p>
+    </div>
+    <div id="gate"></div>
+    <div id="action" style="display:none;">
+      <button class="btn primary" id="seed-btn">부의 갈림길 데이터 심기</button>
+      <p id="seed-result" style="margin-top:14px;font-size:.88rem;"></p>
+    </div>
+  </main>
+  <script type="module" src="./js/seed.js"></script>
+</body>
+</html>
