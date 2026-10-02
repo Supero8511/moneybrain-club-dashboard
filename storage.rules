@@ -8,8 +8,10 @@ service firebase.storage {
     function signedIn() { return request.auth != null; }
     function superAdmin() { return signedIn() && request.auth.token.email == SUPER_ADMIN_EMAIL(); }
     function myRole() {
-      return firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
-        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role
+      // ⚠️ "(default)" 가 아니라 "monybrainclub" 이라는 이름의 Firestore 데이터베이스를 사용합니다.
+      // js/common.js 의 db 연결과 반드시 동일한 데이터베이스 이름이어야 합니다.
+      return firestore.exists(/databases/monybrainclub/documents/users/$(request.auth.uid))
+        ? firestore.get(/databases/monybrainclub/documents/users/$(request.auth.uid)).data.role
         : 'member';
     }
     function staff() { return signedIn() && (superAdmin() || myRole() == 'admin' || myRole() == 'staff'); }
