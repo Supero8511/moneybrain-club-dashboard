@@ -12,7 +12,9 @@ import { firebaseConfig, SUPER_ADMIN_EMAIL } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// ⚠️ "(default)" 가 아니라 "monybrainclub" 이라는 이름의 Firestore 데이터베이스를 사용합니다.
+// Firebase 콘솔에서 데이터베이스 이름을 다르게 만드셨다면 아래 문자열도 그 이름으로 바꿔주세요.
+export const db = getFirestore(app, "monybrainclub");
 export const storage = getStorage(app);
 
 const isConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "REPLACE_ME";
