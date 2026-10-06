@@ -190,7 +190,7 @@ async function initRelay() {
     // 포커스를 옮겨 아직 저장되지 않은 내용을 입력 중이었다면, 다시 그리는
     // 과정에서 그 입력칸(textarea)이 통째로 교체되면서 입력 중이던 내용이
     // 사라지는 문제가 있었습니다. 다시 그리기 직전에 포커스된 textarea의
-    // 값/커서 위치를 기억해뒀다가, 다시 그린 뒤 같은 칸에 그대로 복원합니다.
+        // 값/커서 위치를 기억해뒀다가, 다시 그린 뒤 같은 칸에 그대로 복원합니다.
     const active = document.activeElement;
     let preserved = null;
     if (active && active.tagName === "TEXTAREA" && tbody.contains(active)) {
@@ -243,17 +243,30 @@ async function initRelay() {
       el.addEventListener("change", () => {
         updateRelayRow(bookId, el.dataset.id, { [el.dataset.field]: el.value }).catch((err) => {
           // 저장이 실패하면(권한 문제 등) 조용히 사라지지 않고 바로 알려줍니다.
-          alert("저장에 실패했습니다. 운영진에게 문의해주세요.\n(" + (err?.message || err) + ")");
+          // + 다음에 또 실패할 때 바로 원인을 알 수 있도록 진단 정보를 같이 보여줍니다.
+          alert("저장에 실패했습니다. 운영진에게 문의해주세요.\n(" + (err?.message || err) + ")\n\n" + debugInfo(el.dataset.id));
         });
       });
     });
     [...tbody.querySelectorAll("input[data-check]")].forEach(el => {
       el.addEventListener("change", () => {
         updateRelayRow(bookId, el.dataset.id, { done: el.checked }).catch((err) => {
-          alert("저장에 실패했습니다. 운영진에게 문의해주세요.\n(" + (err?.message || err) + ")");
+          alert("저장에 실패했습니다. 운영진에게 문의해주세요.\n(" + (err?.message || err) + ")\n\n" + debugInfo(el.dataset.id));
         });
       });
     });
+
+    function debugInfo(rowId) {
+      const row = rows.find(r => r.id === rowId);
+      return [
+        "[진단정보]",
+        "행ID: " + rowId,
+        "행 날짜: " + (row?.date || "") + " / 담당자: " + (row?.assignee || ""),
+        "행 assigneeUids: " + JSON.stringify(row?.assigneeUids || []),
+        "내 uid: " + (currentUser?.uid || ""),
+        "내 닉네임: " + (currentProfile?.nickname || ""),
+      ].join("\n");
+    }
     if (staff) {
       [...tbody.querySelectorAll("[data-reassign]")].forEach(btn => {
         btn.onclick = () => {
