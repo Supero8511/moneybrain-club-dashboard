@@ -161,7 +161,19 @@ async function initRelay() {
 
   document.getElementById("relay-pdf-btn").onclick = () => exportRelayPdf(relayRowsCache);
 
-  watchRelay(bookId, (rows) => {
+  watchRelay(bookId, (rawRows) => {
+    // 저장된 순서(등록한 시각) 그대로가 아니라 실제 날짜 기준으로 정렬합니다.
+    // 그래야 나중에 추가한 일정이라도 날짜가 더 빠르면 표에서 더 위(앞)로 나타납니다.
+    // (기존에는 등록 순서로만 고정되어, 나중에 추가한 일정의 날짜를 앞쪽으로
+    // 올리고 싶어도 표에서는 항상 맨 아래에 붙는 문제가 있었습니다.)
+    const rows = [...rawRows].sort((a, b) => {
+      const da = parseRelayDate(a.date);
+      const db = parseRelayDate(b.date);
+      if (da != null && db != null && da !== db) return da - db;
+      if (da != null && db == null) return -1;
+      if (da == null && db != null) return 1;
+      return (a.order || 0) - (b.order || 0);
+    });
     relayRowsCache = rows;
     const tbody = document.getElementById("relay-rows");
 
@@ -361,6 +373,17 @@ function formatDateDot(dateStr) {
   const [y, m, d] = String(dateStr).split("-");
   if (!y || !m || !d) return dateStr;
   return `${y}.${Number(m)}.${Number(d)}`;
+}
+
+// 정렬용: 저장된 날짜 형식(2026.10.1 / 2026-10-01 등)에 상관없이 비교 가능한 숫자(예: 20261001)로 바꿔줍니다.
+// 날짜를 알 수 없는 값이면 null을 반환해 정렬에서 뒤로 보냅니다.
+function parseRelayDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = String(dateStr).split(/[.\-/]/).filter(Boolean);
+  if (parts.length < 3) return null;
+  const [y, m, d] = parts.map(Number);
+  if (!y || !m || !d) return null;
+  return y * 10000 + m * 100 + d;
 }
 
 // 화면 표시용 짧은 날짜 (YYMMDD, 6자리 고정폭). 저장된 값 형식(2026.10.1 / 2026-10-01 등)에 상관없이 표시만 줄여줍니다.
