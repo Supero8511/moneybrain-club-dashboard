@@ -70,10 +70,18 @@
           <div class="materials-upload-col">
             <div class="card" id="materials-upload-card" style="display:none;">
               <h3>자료 올리기</h3>
-              <p class="hint">발제문, 자료 PDF 등을 올릴 수 있습니다. (파일당 최대 10MB, 운영진만 업로드 가능)</p>
+              <p class="hint">발제문, 자료 PDF 등 파일을 올리거나, 텍스트를 바로 작성해서 게시할 수 있습니다. (파일당 최대 10MB, 운영진만 작성 가능)</p>
               <form id="materials-form">
                 <div class="field"><label>제목</label><input type="text" id="material-title" placeholder="예) 1주차 발제문" required /></div>
-                <div class="field"><label>파일</label><input type="file" id="material-file" required /></div>
+                <div class="field">
+                  <label>종류</label>
+                  <div class="field-radio-row">
+                    <label><input type="radio" name="material-type" id="material-type-file" value="file" checked /> 파일 업로드</label>
+                    <label><input type="radio" name="material-type" id="material-type-text" value="text" /> 텍스트 작성</label>
+                  </div>
+                </div>
+                <div class="field" id="material-file-field"><label>파일</label><input type="file" id="material-file" /></div>
+                <div class="field" id="material-text-field" style="display:none;"><label>내용</label><textarea id="material-content" rows="6" placeholder="바로 열어볼 수 있는 텍스트 내용을 입력해주세요."></textarea></div>
                 <div class="field"><label>메모</label><input type="text" id="material-note" placeholder="메모 (선택)" /></div>
                 <button class="btn primary" type="submit">올리기</button>
               </form>

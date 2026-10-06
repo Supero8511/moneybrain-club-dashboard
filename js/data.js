@@ -127,13 +127,19 @@ export function watchBookMaterials(bookId, cb) {
   return onSnapshot(query(collection(db, "books", bookId, "materials"), orderBy("createdAt", "desc")),
     snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
 }
-export async function addBookMaterial(bookId, { file, title, note, uploadedBy }) {
-  const filePath = `materials/${bookId}/${Date.now()}_${file.name}`;
-  const sref = ref(storage, filePath);
-  await uploadBytes(sref, file);
-  const fileUrl = await getDownloadURL(sref);
+// file이 있으면 파일 업로드, 없으면 content(텍스트)를 바로 저장합니다(파일 없이 글만 올리는 경우).
+export async function addBookMaterial(bookId, { file, title, note, content, uploadedBy }) {
+  let fileUrl = "", filePath = "", fileName = "", fileSize = 0;
+  if (file) {
+    filePath = `materials/${bookId}/${Date.now()}_${file.name}`;
+    const sref = ref(storage, filePath);
+    await uploadBytes(sref, file);
+    fileUrl = await getDownloadURL(sref);
+    fileName = file.name;
+    fileSize = file.size;
+  }
   await addDoc(collection(db, "books", bookId, "materials"), {
-    title, note: note || "", fileUrl, filePath, fileName: file.name, fileSize: file.size,
+    title, note: note || "", content: content || "", fileUrl, filePath, fileName, fileSize,
     uploadedBy, createdAt: Date.now()
   });
 }

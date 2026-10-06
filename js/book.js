@@ -535,12 +535,22 @@ async function initMaterials() {
       const uploadedAt = it.createdAt ? new Date(it.createdAt).toLocaleString("ko-KR", {
         year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
       }) : "";
+      // 파일을 올린 경우엔 제목이 파일 링크가 되고, 텍스트만 올린 경우엔 "내용 보기"를 눌러 바로 열어볼 수 있습니다.
+      const isText = !it.fileUrl && it.content;
+      const titleHtml = it.fileUrl
+        ? `<a href="${escapeHtml(it.fileUrl)}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a>`
+        : escapeHtml(it.title);
       return `
       <div class="list-row" data-id="${it.id}">
         <div>
-          <div class="name"><a href="${escapeHtml(it.fileUrl)}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a></div>
-          <div class="sub">${escapeHtml(it.fileName || "")}${it.note ? " · " + escapeHtml(it.note) : ""}</div>
+          <div class="name">${titleHtml}${isText ? `<span class="mini-tag">텍스트</span>` : ""}</div>
+          <div class="sub">${it.fileUrl ? escapeHtml(it.fileName || "") : ""}${it.note ? " · " + escapeHtml(it.note) : ""}</div>
           <div class="sub">${escapeHtml(uploaderName)}${uploadedAt ? " · " + uploadedAt : ""}</div>
+          ${isText ? `
+          <details class="material-text-toggle">
+            <summary>내용 보기</summary>
+            <div class="material-text">${escapeHtml(it.content)}</div>
+          </details>` : ""}
         </div>
         ${staff ? `<button class="btn danger small" data-del="${it.id}" data-path="${it.filePath || ""}">삭제</button>` : ""}
       </div>
@@ -556,17 +566,50 @@ async function initMaterials() {
   });
 
   if (!staff) return;
+
+  // 파일 업로드 / 텍스트 작성 전환
+  const fileField = document.getElementById("material-file-field");
+  const textField = document.getElementById("material-text-field");
+  const typeFileRadio = document.getElementById("material-type-file");
+  const typeTextRadio = document.getElementById("material-type-text");
+  [typeFileRadio, typeTextRadio].forEach(r => r.addEventListener("change", () => {
+    const isText = typeTextRadio.checked;
+    fileField.style.display = isText ? "none" : "";
+    textField.style.display = isText ? "" : "none";
+  }));
+
   document.getElementById("materials-form").onsubmit = async (e) => {
     e.preventDefault();
     const title = document.getElementById("material-title").value.trim();
-    const file = document.getElementById("material-file").files[0];
     const note = document.getElementById("material-note").value.trim();
-    if (!title || !file) return;
+    if (!title) return;
+    const submitBtn = e.target.querySelector("button[type=submit]");
+
+    if (typeTextRadio.checked) {
+      const content = document.getElementById("material-content").value.trim();
+      if (!content) { alert("텍스트 내용을 입력해주세요."); return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "저장 중…";
+      try {
+        await addBookMaterial(bookId, { title, note, content, uploadedBy: currentUser.uid });
+        e.target.reset();
+        fileField.style.display = "";
+        textField.style.display = "none";
+      } catch (err) {
+        alert("자료 등록 중 오류가 발생했습니다: " + (err.message || err));
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "올리기";
+      }
+      return;
+    }
+
+    const file = document.getElementById("material-file").files[0];
+    if (!file) { alert("파일을 선택해주세요."); return; }
     if (file.size > MAX_UPLOAD_BYTES) {
       alert("파일은 10MB 이하만 업로드할 수 있습니다.");
       return;
     }
-    const submitBtn = e.target.querySelector("button[type=submit]");
     submitBtn.disabled = true;
     submitBtn.textContent = "업로드 중…";
     try {

@@ -187,9 +187,13 @@ td textarea{resize:vertical;min-height:40px;max-height:140px;overflow-y:auto;}
 .modal p.sub{margin:0 0 16px;color:var(--ink-soft);font-size:.85rem;}
 .field{margin-bottom:12px;}
 .field label{display:block;font-size:.78rem;font-weight:700;color:var(--ink-soft);margin-bottom:5px;}
-.field input, .field select{
+.field input, .field select, .field textarea{
   width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 11px;font-size:.9rem;font-family:inherit;
 }
+.field textarea{resize:vertical;min-height:90px;}
+.field-radio-row{display:flex;gap:16px;flex-wrap:wrap;}
+.field-radio-row label{display:flex;align-items:center;gap:6px;font-weight:700;font-size:.86rem;cursor:pointer;}
+.field-radio-row input{accent-color:var(--navy);}
 .modal-tabs{display:flex;gap:6px;margin-bottom:16px;background:#f1efe8;border-radius:999px;padding:4px;}
 .modal-tabs button{flex:1;border:none;background:none;padding:8px;border-radius:999px;font-weight:700;font-size:.82rem;color:var(--ink-soft);cursor:pointer;}
 .modal-tabs button.active{background:var(--surface);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08);}
@@ -217,6 +221,13 @@ td textarea{resize:vertical;min-height:40px;max-height:140px;overflow-y:auto;}
 }
 .list-row .name{font-weight:700;font-size:.88rem;}
 .list-row .sub{font-size:.76rem;color:var(--ink-soft);}
+.list-row .name .mini-tag{background:var(--gold-soft);color:#7a5a16;padding:2px 7px;border-radius:999px;font-weight:700;margin-left:4px;}
+.material-text-toggle{margin-top:8px;}
+.material-text-toggle summary{cursor:pointer;font-size:.78rem;color:var(--navy);font-weight:700;}
+.material-text{
+  white-space:pre-wrap;word-break:break-word;margin-top:8px;padding:10px 12px;
+  background:#fbf9f4;border:1px solid var(--line);border-radius:10px;font-size:.85rem;line-height:1.6;color:var(--ink);
+}
 .role-select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:.8rem;font-family:inherit;}
 .access-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
 .access-chip{
